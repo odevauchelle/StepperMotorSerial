@@ -8,7 +8,7 @@ class Stepper :
     def __init__( self, port = None, dt = None ) :
  
         if dt is None :
-            dt = 15 # milliseconds
+            dt = 20 # milliseconds
         
         self.default_dt = dt
  
@@ -62,16 +62,14 @@ class Stepper :
     def connect( self, port = None ) :
       
         serial_port = serial.Serial( port = port )
-        serial_port.close()
-        serial_port = serial.Serial( port = port )
-
        
         if self.test_connection( serial_port ) :
             self.serial = serial_port
         
         else :
-            raise NameError('Not a Stepper board on ' + port )
             serial_port.close()
+            raise NameError('Not a Stepper board on ' + port )
+
     
     def get_state( self ):
 
