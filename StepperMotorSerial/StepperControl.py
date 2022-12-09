@@ -5,12 +5,13 @@ import json
 
 class Stepper :
     
-    def __init__( self, port = None, dt = None ) :
+    def __init__( self, port = None, dt = None, board_id = 'Stepper'  ) :
  
         if dt is None :
             dt = 20 # milliseconds
         
         self.default_dt = dt
+        self.id = board_id
  
         if not port is None :
             self.connect( port = port )
@@ -56,13 +57,13 @@ class Stepper :
 
     def test_connection( self, serial_port = None ):
         
-        return 'Stepper' in self.communicate( 'id', serial_port = serial_port )
+        return self.id in self.communicate( 'id', serial_port = serial_port )
 
 
     def connect( self, port = None ) :
       
         serial_port = serial.Serial( port = port )
-       
+ 
         if self.test_connection( serial_port ) :
             self.serial = serial_port
         
