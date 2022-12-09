@@ -27,13 +27,13 @@ char* string2char(String command){
 }
 
 void PrintParams(){    
-      Serial.print("dt:");
+      Serial.print("\"dt\":");
       Serial.print(delayLength);
-      Serial.print(", N:");
+      Serial.print(", \"N\":");
       Serial.print(nStep);
-      Serial.print(", direction:");
+      Serial.print(", \"direction\":");
       Serial.print(RotDir);
-      Serial.print(", currentN:");
+      Serial.print(", \"currentN\":");
       Serial.println(CurrentStep);
 }
 
@@ -85,14 +85,19 @@ void loop() {
   if (Serial.available()> 0){
     
     UserCommand = Serial.readString();
-     
-    if ( UserCommand == "?" ){
-       PrintParams();
+    UserCommand.trim();
+
+    if ( UserCommand == "s" ){
+       Serial.println( "Stopping" );
+       delayLength = -1;
     }
 
-    else if ( UserCommand == "s" ){
-       Serial.println( "Stopping." );
-       delayLength = -1;
+    else if ( UserCommand == "id" ){
+       Serial.println( "Stepper" );
+    }
+    
+    else if ( UserCommand == "?" ){
+       PrintParams();
     }
     
     else {
@@ -115,24 +120,34 @@ void loop() {
     
   }
 
-  if (delayLength > 0 & CurrentStep < nStep ){
+  if ( delayLength > 0 ){
     
-    if ( RotDir >= 0 ){
-      for ( int iStep=0; iStep<=3; iStep++ ){
-        MotorStep(iStep);
-        delay(delayLength);
+    if ( CurrentStep < nStep ){
+    
+      if ( RotDir >= 0 ){
+        for ( int iStep=0; iStep<=3; iStep++ ){
+          MotorStep(iStep);
+          delay(delayLength);
+        }
       }
-    }
- 
-    else {
-      for ( int iStep=3; iStep>=0; iStep-- ){
-        MotorStep(iStep);
-        delay(delayLength);
+   
+      else {
+        for ( int iStep=3; iStep>=0; iStep-- ){
+          MotorStep(iStep);
+          delay(delayLength);
+        }
       }
     }
 
-    CurrentStep += 1;
+    else {
+      Serial.println( "Done" );
+      delayLength = -1;
+    }
+
     
-  };
+    CurrentStep += 1;
+  
+  }
+
 
 }
