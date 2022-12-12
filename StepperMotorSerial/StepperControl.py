@@ -1,11 +1,12 @@
 import serial
 from pylab import *
 import json
+from time import sleep
 
 
 class Stepper :
     
-    def __init__( self, port = None, dt = None, board_id = 'Stepper'  ) :
+    def __init__( self, port = None, dt = None, board_id = 'Stepper' ) :
  
         if dt is None :
             dt = 20 # milliseconds
@@ -21,14 +22,15 @@ class Stepper :
                 
                 port = '/dev/ttyACM' + str( port_index )
                 
+                print('Connecting to port ' + port + ' as ' + self.id )
+                
                 try :
                     self.connect( port = port )
                     break
                 
-                except :
-                    pass
+                except Exception as e:
+                    print(e)
         
-        print( 'Connected on Stepper board at' + self.serial.port )
 
     def write(self, message, serial_port = None ) :
            
@@ -37,18 +39,15 @@ class Stepper :
         
         return serial_port.write( message.encode() )
 
-    def read( self, serial_port = None, timeout = None ) :
+    def read( self, serial_port = None ) :
              
         if serial_port is None :
             serial_port = self.serial
         
-        if timeout is None :
-            timeout = serial_port.timeout
-        
         return serial_port.readline().decode().strip()
 
 
-    def communicate( self, message, serial_port = None ) : 
+    def communicate( self, message, serial_port = None ) :
         
         self.write( message, serial_port = serial_port )
         
@@ -57,18 +56,27 @@ class Stepper :
 
     def test_connection( self, serial_port = None ):
         
-        return self.id in self.communicate( 'id', serial_port = serial_port )
+        answer = self.communicate( 'id', serial_port = serial_port )
+        
+        print(answer)
+        
+        return self.id in answer
 
 
-    def connect( self, port = None ) :
+    def connect( self, port, **user_serial_kwargs ) :
+        
+        serial_kwargs = {}
+        serial_kwargs.update( user_serial_kwargs ) 
       
-        serial_port = serial.Serial( port = port )
- 
-        if self.test_connection( serial_port ) :
+        serial_port = serial.Serial( port = port, **serial_kwargs )
+  
+        if self.test_connection( serial_port = serial_port ) :
             self.serial = serial_port
+            print( 'Connected on Stepper board at' + self.serial.port )
         
         else :
             serial_port.close()
+            print( 'Port ' + port + 'closed.' )
             raise NameError('Not a Stepper board on ' + port )
 
     

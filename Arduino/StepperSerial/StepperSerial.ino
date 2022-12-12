@@ -45,8 +45,8 @@ void setup() {
   pinMode(brakeB, OUTPUT);
   pinMode(motA, OUTPUT);
   pinMode(motB, OUTPUT);
-
 }
+
 
 void MotorStep(int iStep){
   
@@ -144,10 +144,8 @@ void loop() {
       delayLength = -1;
     }
 
-    
     CurrentStep += 1;
   
   }
-
 
 }
