@@ -38,7 +38,7 @@ void PrintParams(){
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   pinMode(dirA, OUTPUT);
   pinMode(dirB, OUTPUT);
   pinMode(brakeA, OUTPUT);

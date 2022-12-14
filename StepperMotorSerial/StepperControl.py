@@ -1,56 +1,69 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
 import serial
+from serial.tools import list_ports
 from pylab import *
 import json
 from time import sleep
 
 
+
 class Stepper :
     
-    def __init__( self, port = None, dt = None, board_id = 'Stepper' ) :
- 
-        if dt is None :
-            dt = 20 # milliseconds
-        
+    def __init__( self, port = None, dt = 20, board_id = 'Stepper', encoding = 'latin-1' ) :
+
         self.default_dt = dt
         self.id = board_id
+        self.encoding = encoding
  
         if not port is None :
             self.connect( port = port )
         
         else :
-            for port_index in range(10) :
-                
-                port = '/dev/ttyACM' + str( port_index )
-                
-                print('Connecting to port ' + port + ' as ' + self.id )
+            
+            for port in list_ports.grep( 'ttyACM' ):
+  
+                print('Connecting to port ' + port.device + ' as ' + self.id )
+                print('hwid:' + port.hwid )
                 
                 try :
-                    self.connect( port = port )
+                    self.connect( port = port.device )
                     break
                 
                 except Exception as e:
                     print(e)
-        
+            
 
     def write(self, message, serial_port = None ) :
-           
+        
         if serial_port is None :
             serial_port = self.serial
-        
-        return serial_port.write( message.encode() )
+            
+        message = message.encode( self.encoding )
 
-    def read( self, serial_port = None ) :
+        serial_port.reset_input_buffer()
+
+        serial_port.write( message )
+
+
+    def read( self, serial_port = None) :
              
         if serial_port is None :
             serial_port = self.serial
         
-        return serial_port.readline().decode().strip()
-
-
-    def communicate( self, message, serial_port = None ) :
+        answer = serial_port.readlines()[-1]
         
+        return answer.strip().decode( self.encoding )
+
+
+    def communicate( self, message, serial_port = None, waiting_time = 1 ) :
+                
         self.write( message, serial_port = serial_port )
-        
+
+        sleep(waiting_time)
+
         return self.read( serial_port = serial_port )
     
 
@@ -58,14 +71,14 @@ class Stepper :
         
         answer = self.communicate( 'id', serial_port = serial_port )
         
-        print(answer)
+        print( "Arduino's answer:", answer )
         
         return self.id in answer
 
 
     def connect( self, port, **user_serial_kwargs ) :
         
-        serial_kwargs = {}
+        serial_kwargs = dict( baudrate = 115200, timeout = .1 )
         serial_kwargs.update( user_serial_kwargs ) 
       
         serial_port = serial.Serial( port = port, **serial_kwargs )
@@ -76,7 +89,7 @@ class Stepper :
         
         else :
             serial_port.close()
-            print( 'Port ' + port + 'closed.' )
+            print( 'Port ' + port + ' closed.' )
             raise NameError('Not a Stepper board on ' + port )
 
     
@@ -106,7 +119,6 @@ class Stepper :
                 break
             elif verbous :
                 print('Not done yet.')
-            
     
     def stop( self ) :
         return self.communicate('s')
