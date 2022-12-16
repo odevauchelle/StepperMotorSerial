@@ -15,9 +15,21 @@ const int brakeB = 9;
 
 float delayLength = -1; // negative value = stop
 int nStep = -1; // negative = infinite number of steps
-int RotDir = +1; // rotation direction 
-String UserCommand = "?";
+int RotDir = +1; // rotation direction
+String UserCommand = "";
 int CurrentStep = 0;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.setTimeout(1);
+  UserCommand.reserve(200);    
+  pinMode(dirA, OUTPUT);
+  pinMode(dirB, OUTPUT);
+  pinMode(brakeA, OUTPUT);
+  pinMode(brakeB, OUTPUT);
+  pinMode(motA, OUTPUT);
+  pinMode(motB, OUTPUT);
+}
 
 char* string2char(String command){
     if(command.length()!=0){
@@ -36,17 +48,6 @@ void PrintParams(){
       Serial.print(", \"currentN\":");
       Serial.println(CurrentStep);
 }
-
-void setup() {
-  Serial.begin(115200);
-  pinMode(dirA, OUTPUT);
-  pinMode(dirB, OUTPUT);
-  pinMode(brakeA, OUTPUT);
-  pinMode(brakeB, OUTPUT);
-  pinMode(motA, OUTPUT);
-  pinMode(motB, OUTPUT);
-}
-
 
 void MotorStep(int iStep){
   
@@ -79,14 +80,25 @@ void MotorStep(int iStep){
   }
 }
 
+void serialEvent() {
+  
+  while ( Serial.available() ) {
 
-void loop() {
+    char inChar = (char)Serial.read();
 
-  if (Serial.available()> 0){
+    if (inChar == '\n') {
+      ApplyCommand();
+      UserCommand = "";
+    }
     
-    UserCommand = Serial.readString();
-    UserCommand.trim();
+    else {
+      UserCommand += inChar;
+    }
+  }
+}
 
+void ApplyCommand() {
+  
     if ( UserCommand == "s" ){
        Serial.println( "Stopping" );
        delayLength = -1;
@@ -119,6 +131,8 @@ void loop() {
     }
     
   }
+
+void loop() {
 
   if ( delayLength > 0 ){
     
