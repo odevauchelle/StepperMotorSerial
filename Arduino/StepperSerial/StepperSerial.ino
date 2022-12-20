@@ -13,16 +13,17 @@ const int motB = 3;
 const int brakeA = 8;
 const int brakeB = 9;
 
+  
 float delayLength = -1; // negative value = stop
 int nStep = -1; // negative = infinite number of steps
 int RotDir = +1; // rotation direction
-String UserCommand = "";
 int CurrentStep = 0;
 
 void setup() {
+
   Serial.begin(9600);
-  Serial.setTimeout(1);
-  UserCommand.reserve(200);    
+  ApplyCommand("s");
+  
   pinMode(dirA, OUTPUT);
   pinMode(dirB, OUTPUT);
   pinMode(brakeA, OUTPUT);
@@ -81,40 +82,28 @@ void MotorStep(int iStep){
 }
 
 void serialEvent() {
-  
-  while ( Serial.available() ) {
-
-    char inChar = (char)Serial.read();
-
-    if (inChar == '\n') {
-      ApplyCommand();
-      UserCommand = "";
-    }
-    
-    else {
-      UserCommand += inChar;
-    }
-  }
+  String UserCommand = Serial.readStringUntil('\n');
+  ApplyCommand( UserCommand );
 }
 
-void ApplyCommand() {
+void ApplyCommand(String Command) {
   
-    if ( UserCommand == "s" ){
+    if ( Command == "s" ){
        Serial.println( "Stopping" );
        delayLength = -1;
     }
 
-    else if ( UserCommand == "id" ){
+    else if ( Command == "id" ){
        Serial.println( "Stepper" );
     }
     
-    else if ( UserCommand == "?" ){
+    else if ( Command == "?" ){
        PrintParams();
     }
     
     else {
       
-      char * splitCommand = strtok ( string2char( UserCommand ), ">," );
+      char * splitCommand = strtok ( string2char( Command ), ">," );
       
       delayLength = atof( splitCommand );
     
@@ -138,14 +127,14 @@ void loop() {
     
     if ( CurrentStep < nStep ){
     
-      if ( RotDir >= 0 ){
+      if ( RotDir >= 0 ){ // forward
         for ( int iStep=0; iStep<=3; iStep++ ){
           MotorStep(iStep);
           delay(delayLength);
         }
       }
    
-      else {
+      else { // reverse
         for ( int iStep=3; iStep>=0; iStep-- ){
           MotorStep(iStep);
           delay(delayLength);

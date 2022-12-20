@@ -12,7 +12,7 @@ class Stepper :
         self.dt = dt # ms
         self.id = board_id
         self.stepper_revolution_time = 4*self.dt/1000 # s
-        self.timeout = 0.1 + 2*self.stepper_revolution_time
+        self.timeout = 5*self.stepper_revolution_time # s
 
         self.connect( port = port )
 
@@ -43,7 +43,9 @@ class Stepper :
 
         self.write( message, serial_port = serial_port )
 
-        return self.read( serial_port = serial_port )
+        answer = self.read( serial_port = serial_port )
+
+        return answer
 
 
     def test_connection( self, serial_port = None ):
@@ -53,23 +55,28 @@ class Stepper :
         return self.id in answer
 
 
-    def connect( self, port, **user_serial_kwargs ) :
+    def connect( self, port, nb_trials = 10, **user_serial_kwargs ) :
 
         serial_kwargs = dict( baudrate = 9600, timeout = self.timeout )
         serial_kwargs.update( user_serial_kwargs )
 
         serial_port = serial.Serial( port = port, **serial_kwargs )
 
-        serial_port.reset_input_buffer()
-        serial_port.reset_output_buffer()
+        for i_trial in range( nb_trials ) :
 
-        if self.test_connection( serial_port = serial_port ) :
-            self.serial = serial_port
+            if self.test_connection( serial_port = serial_port ) :
+                self.serial = serial_port
+                break
+
+            else :
+                pass
+
+        print('After ' + str(i_trial+1) + ' attempts,')
+
+        try :
             print( 'Connected on Stepper board at' + self.serial.port )
 
-        else :
-            serial_port.close()
-            print( 'Port ' + port + ' closed.' )
+        except :
             raise NameError('Not a Stepper board on ' + port )
 
 
@@ -116,7 +123,7 @@ def state_string_to_json( state_string ) :
 
 if __name__ == '__main__' :
 
-    s = Stepper( port = '/dev/ttyACM1')
+    s = Stepper( port = '/dev/ttyACM0')
     print( s.get_state() )
     s.move( N = 10, direction = -1 )
     print( s.get_state() )
