@@ -125,7 +125,7 @@ void loop() {
 
   if ( delayLength > 0 ){
     
-    if ( CurrentStep < nStep ){
+    if ( CurrentStep < nStep || nStep < 0 ){
     
       if ( RotDir >= 0 ){ // forward
         for ( int iStep=0; iStep<=3; iStep++ ){
