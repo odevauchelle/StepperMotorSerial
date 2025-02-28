@@ -17,7 +17,7 @@ void setup() {
 // the loop routine  runs over and over again forever:
 void loop() {
   // read the input on analog  pin 0:
-  int sensorValue = 0;
+  float sensorValue = 0;
   for (int i=0; i < NbMeasure; i++) {
     sensorValue = sensorValue + analogRead(A0);
     delay(10);
